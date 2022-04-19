@@ -1,0 +1,31 @@
+{
+  "main": "lib/binding.js",
+  "scripts": {
+    "install": "prebuild-install --runtime napi || npm run rebuild",
+    "rebuild": "cmake-js compile",
+    "prebuild": "prebuild --runtime napi --all --strip --verbose",
+    "upload": "prebuild --runtime napi --upload ${GITHUB_TOKEN}",
+    "build": "tsc",
+    "test": "npm run rebuild && npm run build && node --napi-modules ./test/test_binding.js"
+  },
+  "dependencies": {
+    "cmake-js": "^6.3.0",
+    "node-addon-api": "^4.3.0",
+    "prebuild-install": "^7.0.1"
+  },
+  "name": "auto-io-addon",
+  "version": "1.0.0",
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^16.0.0",
+    "prebuild": "^11.0.3",
+    "typescript": "^4.6.3"
+  },
+  "binary": {
+    "napi_versions": [
+      6
+    ]
+  }
+}

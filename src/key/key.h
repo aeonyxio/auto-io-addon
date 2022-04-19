@@ -1,0 +1,1 @@
+WORD GetKeyCode(Key key);
