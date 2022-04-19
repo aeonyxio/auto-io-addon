@@ -1,5 +1,9 @@
 {
   "main": "lib/binding.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aeonyxio/auto-io-addon.git"
+  },
   "scripts": {
     "install": "prebuild-install --runtime napi || npm run rebuild",
     "rebuild": "cmake-js compile",
