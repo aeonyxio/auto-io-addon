@@ -1,0 +1,7 @@
+node_modules
+*.log
+.vscode/c_cpp_properties.json
+build
+prebuild
+src
+LIB
