@@ -6,3 +6,4 @@ prebuild
 lib
 test
 tsconfig.json
+.env
