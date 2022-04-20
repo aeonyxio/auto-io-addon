@@ -4,7 +4,6 @@ import { KeyboardLayout } from "./keyboard-layout";
 const addon = require("../build/Release/addon");
 
 export const setKeyboardLayout = (layout: KeyboardLayout): Promise<void> => {
-  console.log("switch ", layout);
   return promisify(addon.setKeyboardLayoutAsync)(layout);
 };
 
