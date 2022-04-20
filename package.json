@@ -1,5 +1,5 @@
 {
-  "main": "lib/binding.js",
+  "main": "dist/binding.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/aeonyxio/auto-io-addon.git"
@@ -29,7 +29,9 @@
   },
   "binary": {
     "napi_versions": [
-      6
+      6,
+      7,
+      8
     ]
   }
 }

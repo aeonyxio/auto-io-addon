@@ -96,8 +96,8 @@ add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
 # Gives our library file a .node extension without any "lib" prefix
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
-# add_compile_definitions(NAPI_VERSION=${napi_build_version})
-add_compile_definitions(NAPI_VERSION=6)
+add_compile_definitions(NAPI_VERSION=${napi_build_version})
+# add_compile_definitions(NAPI_VERSION=6)
 
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
