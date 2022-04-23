@@ -39,13 +39,10 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     return -1;  // Failure
 }
 
-void screenshot(POINT a, POINT b)
+std::tuple<char*, int> screenshot(POINT a, POINT b)
 {
     int w = b.x - a.x;
     int h = b.y - a.y;
-
-    if(w <= 0) return;
-    if(h <= 0) return;
 
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
@@ -54,20 +51,40 @@ void screenshot(POINT a, POINT b)
     BitBlt(hDc, 0, 0, w, h, hScreen, a.x, a.y, SRCCOPY);
 
     Gdiplus::Bitmap bitmap(hBitmap, NULL);
-    CLSID clsid;
 
-    GetEncoderClsid(L"image/png", &clsid);
 
-    //GDI+ expects Unicode filenames
-    bitmap.Save(L"c:\\test\\test.png", &clsid);
+	//write to IStream
+	IStream* istream = nullptr;
+	HRESULT hr = CreateStreamOnHGlobal(NULL, TRUE, &istream);
+	CLSID clsid_png;
+	CLSIDFromString(L"{557cf406-1a04-11d3-9a73-0000f81ef32e}", &clsid_png);
+	bitmap.Save(istream, &clsid_png);
+
+	//get memory handle associated with istream
+	HGLOBAL hg = NULL;
+	GetHGlobalFromStream(istream, &hg);
+
+	//copy IStream to buffer
+	int bufsize = GlobalSize(hg);
+	char *buffer = new char[bufsize];
+
+	//lock & unlock memory
+	LPVOID ptr = GlobalLock(hg);
+	memcpy(buffer, ptr, bufsize);
+	GlobalUnlock(hg);
+
+	//release will automatically free the memory allocated in CreateStreamOnHGlobal 
+	istream->Release();
 
     SelectObject(hDc, old_obj);
     DeleteDC(hDc);
     ReleaseDC(HWND_DESKTOP, hScreen);
     DeleteObject(hBitmap);
+
+	return { buffer, bufsize };
 }
 
-int main()
+std::tuple<char*, int> getScreenshot()
 {
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;
@@ -78,15 +95,15 @@ int main()
     POINT a{ 0, 0 };
     POINT b{ 100, 100 };
 
-    screenshot(a, b);
+    auto [buffer, bufferSize] = screenshot(a, b);
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
-    return 0;
+    return {buffer, bufferSize};
 }
 
 
-Napi::Value screenCaptureApi(const Napi::CallbackInfo &info)
+Napi::Buffer<char> screenCaptureApi(const Napi::CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
 
@@ -105,12 +122,12 @@ Napi::Value screenCaptureApi(const Napi::CallbackInfo &info)
     POINT a{ 0, 0 };
     POINT b{ 100, 100 };
 
-    screenshot(a, b);
+    auto [buffer, bufferSize] = screenshot(a, b);
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
-	// Napi::Buffer<char> buffer = Napi::Buffer<char>::Copy(env, (char *)bitmap->imageBuffer, bufferSize);
+	Napi::Buffer<char> response = Napi::Buffer<char>::Copy(env, buffer, bufferSize);
 
 	// return buffer;
-    return info.Env().Undefined();
+    return response;
 }
