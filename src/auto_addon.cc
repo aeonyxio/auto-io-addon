@@ -21,6 +21,9 @@
 #include "sleep/sync.h"
 #include "set-keyboard-layout/async.h"
 #include "set-keyboard-layout/sync.h"
+#include "shutdown/shutdown-api.h"
+#include "screen-capture/screen-capture-api.h"
+#include "window/window-api.h"
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "getKeyboardLayoutSync"),
@@ -81,6 +84,20 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
               Napi::Function::New(env, SetKeyboardLayoutSync));
   exports.Set(Napi::String::New(env, "setKeyboardLayoutAsync"),
               Napi::Function::New(env, SetKeyboardLayoutAsync));
+              
+  exports.Set(Napi::String::New(env, "getActiveWindow"),
+              Napi::Function::New(env, getActiveWindowAPI));
+  exports.Set(Napi::String::New(env, "getWindows"),
+              Napi::Function::New(env, getWindowsAPI));
+  exports.Set(Napi::String::New(env, "getWindowRect"),
+              Napi::Function::New(env, getWindowRectAPI));
+  exports.Set(Napi::String::New(env, "getWindowTitle"),
+              Napi::Function::New(env, getWindowTitleAPI));
+  exports.Set(Napi::String::New(env, "setActiveWindow"),
+              Napi::Function::New(env, setActiveWindowAPI));
+
+  exports.Set(Napi::String::New(env, "screenCapture"),
+              Napi::Function::New(env, screenCaptureApi));
 
   EventsObject::Init(env, exports);
   return exports;

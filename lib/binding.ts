@@ -16,3 +16,12 @@ export { mouseUp, mouseUpSync } from "./mouse-up";
 export { getKeyboardLayoutList } from "./get-keyboard-layout-list";
 export { unicodeDown, unicodeDownSync } from "./unicode-down";
 export { unicodeUp, unicodeUpSync } from "./unicode-up";
+export { shutdown } from "./shutdown";
+export {
+  getWindowRect,
+  getWindowTitle,
+  getWindows,
+  getActiveWindow,
+  setActiveWindow,
+} from "./window";
+export { screenCapture } from "./screen-capture";

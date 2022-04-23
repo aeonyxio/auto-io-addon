@@ -71,6 +71,7 @@
     "xlocmon": "cpp",
     "xloctime": "cpp",
     "xtree": "cpp",
-    "codecvt": "cpp"
+    "codecvt": "cpp",
+    "windows.h": "c"
   }
 }

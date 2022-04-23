@@ -1,20 +1,8 @@
-const {
-  Code,
-  keyUp,
-  keyDown,
-  type,
-  getKeyboardLayout,
-  setKeyboardLayout,
-  KeyboardLayout,
-  sleep,
-  getKeyboardLayoutList,
-  unicodeDown,
-  unicodeUp,
-} = require("../dist/binding.js");
+const { writeFileSync } = require("fs");
+const { screenCapture } = require("../dist/binding.js");
 
 const test = async () => {
-  await unicodeDown("2665");
-  await unicodeUp("2665");
+  screenCapture(0, 0, 500, 500);
 };
 
 test().catch(console.error);

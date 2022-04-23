@@ -88,6 +88,25 @@ file(GLOB_RECURSE SOURCE_FILES
 "src/set-keyboard-layout/async.cc"
 "src/set-keyboard-layout/async.h"
 
+"src/shutdown/shutdown.cc"
+"src/shutdown/shutdown.h"
+"src/shutdown/shutdown-api.cc"
+"src/shutdown/shutdown-api.h"
+
+"src/window/window.cc"
+"src/window/window.h"
+"src/window/window-api.cc"
+"src/window/window-api.h"
+
+"src/inline_keywords.h"
+"src/MMBitmap.h"
+"src/MMBitmap.c"
+"src/types.h"
+"src/screen-capture/screen-capture.c"
+"src/screen-capture/screen-capture.h"
+"src/screen-capture/screen-capture-api.cc"
+"src/screen-capture/screen-capture-api.h"
+
 "src/auto_addon.cc"
 "src/auto_addon.h"
 )
@@ -96,8 +115,13 @@ add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
 # Gives our library file a .node extension without any "lib" prefix
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 
-add_compile_definitions(NAPI_VERSION=${napi_build_version})
-# add_compile_definitions(NAPI_VERSION=6)
+if(napi_build_version)
+    message(STATUS "NAPI BUILD VERSION: ${napi_build_version}")
+    add_compile_definitions(NAPI_VERSION=${napi_build_version})
+    # add_compile_definitions(NAPI_VERSION=6)
+else()
+    message(STATUS "Without prebuild")
+endif()
 
 # Essential include files to build a node addon,
 # You should add this line in every CMake.js based project
