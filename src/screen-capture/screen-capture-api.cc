@@ -6,9 +6,14 @@
 #include <winsock2.h>
 #include <unknwn.h>
 #include <gdiplus.h>
+#include <shellscalingapi.h>
 
 //Visual Studio shortcut for adding library:
 #pragma comment(lib, "Gdiplus.lib")
+#pragma comment(lib, "SHCore")
+#pragma comment(lib, "UXTheme")
+#pragma comment(lib, "shell32")
+#pragma comment(lib, "WINDOWSCODECS")
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
@@ -39,16 +44,24 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     return -1;  // Failure
 }
 
-std::tuple<char*, int> screenshot(POINT a, POINT b)
+std::tuple<char*, int> screenshot(int x, int y, int width, int height)
 {
-    int w = b.x - a.x;
-    int h = b.y - a.y;
+	//DPI
+	POINT temp = { (LONG)x,(LONG)y };
+	HMONITOR primaryHandle = MonitorFromPoint(temp, MONITOR_DEFAULTTOPRIMARY);
+	UINT dpiX, dpiY;
+	HRESULT temp2 = GetDpiForMonitor(primaryHandle, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
+	double scalingFactorX = dpiX / 96.0;
+	double scalingFactorY = dpiY / 96.0;
+
+	x = (int)(x * scalingFactorX);
+	y = (int)(y * scalingFactorY);
 
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
-    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, w, h);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, width, height);
     HGDIOBJ old_obj = SelectObject(hDc, hBitmap);
-    BitBlt(hDc, 0, 0, w, h, hScreen, a.x, a.y, SRCCOPY);
+    BitBlt(hDc, 0, 0, width, height, hScreen, x, y, SRCCOPY);
 
     Gdiplus::Bitmap bitmap(hBitmap, NULL);
 
@@ -65,7 +78,7 @@ std::tuple<char*, int> screenshot(POINT a, POINT b)
 	GetHGlobalFromStream(istream, &hg);
 
 	//copy IStream to buffer
-	int bufsize = GlobalSize(hg);
+	int bufsize = (int)GlobalSize(hg);
 	char *buffer = new char[bufsize];
 
 	//lock & unlock memory
@@ -84,23 +97,23 @@ std::tuple<char*, int> screenshot(POINT a, POINT b)
 	return { buffer, bufsize };
 }
 
-std::tuple<char*, int> getScreenshot()
-{
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
+// std::tuple<char*, int> getScreenshot()
+// {
+//     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+//     ULONG_PTR gdiplusToken;
+//     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
-    RECT      rc;
-    GetClientRect(GetDesktopWindow(), &rc);
-    POINT a{ 0, 0 };
-    POINT b{ 100, 100 };
+//     RECT      rc;
+//     GetClientRect(GetDesktopWindow(), &rc);
+//     POINT a{ 0, 0 };
+//     POINT b{ 100, 100 };
 
-    auto [buffer, bufferSize] = screenshot(a, b);
+//     auto [buffer, bufferSize] = screenshot(a, b);
 
-    Gdiplus::GdiplusShutdown(gdiplusToken);
+//     Gdiplus::GdiplusShutdown(gdiplusToken);
 
-    return {buffer, bufferSize};
-}
+//     return {buffer, bufferSize};
+// }
 
 
 Napi::Buffer<char> screenCaptureApi(const Napi::CallbackInfo &info)
@@ -122,7 +135,7 @@ Napi::Buffer<char> screenCaptureApi(const Napi::CallbackInfo &info)
     POINT a{ 0, 0 };
     POINT b{ 100, 100 };
 
-    auto [buffer, bufferSize] = screenshot(a, b);
+    auto [buffer, bufferSize] = screenshot((int)x, (int)y, (int)width, (int)height);
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
