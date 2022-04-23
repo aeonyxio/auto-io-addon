@@ -15,12 +15,7 @@ const test = async () => {
       );
     })
   );
-  const buffer = screenCapture(
-    rect.x * 2.5,
-    rect.y * 2.5,
-    rect.width * 2.5,
-    rect.height * 2.5
-  );
+  const buffer = screenCapture(rect.x, rect.y, rect.width, rect.height);
   console.log(buffer);
   writeFileSync("test.png", buffer);
 };
