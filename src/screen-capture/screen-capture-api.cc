@@ -7,6 +7,7 @@
 #include <unknwn.h>
 #include <gdiplus.h>
 #include <shellscalingapi.h>
+#include <iostream>
 
 //Visual Studio shortcut for adding library:
 #pragma comment(lib, "Gdiplus.lib")
@@ -46,6 +47,7 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 
 std::tuple<char*, int> screenshot(int x, int y, int width, int height)
 {
+    SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 	//DPI
 	POINT temp = { (LONG)x,(LONG)y };
 	HMONITOR primaryHandle = MonitorFromPoint(temp, MONITOR_DEFAULTTOPRIMARY);
@@ -58,6 +60,8 @@ std::tuple<char*, int> screenshot(int x, int y, int width, int height)
 	y = (int)(y * scalingFactorY);
 	width = (int)(width * scalingFactorX);
 	height = (int)(height * scalingFactorY);
+	
+    std::cout << scalingFactorX << "[" << dpiX << "]" << temp2 << std::endl; // log
 
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
