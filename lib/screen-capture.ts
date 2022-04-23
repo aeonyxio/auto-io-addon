@@ -5,13 +5,6 @@ export const screenCapture = (
   y: number,
   width: number,
   height: number
-): {
-  width: number;
-  height: number;
-  byteWidth: number;
-  bitsPerPixel: number;
-  bytesPerPixel: number;
-  image: Buffer;
-} => addon.screenCapture(x, y, width, height);
+): Buffer => addon.screenCapture(x, y, width, height);
 
 screenCapture;

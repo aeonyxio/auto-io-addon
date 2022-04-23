@@ -60,8 +60,6 @@ std::tuple<char*, int> screenshot(int x, int y, int width, int height)
 	y = (int)(y * scalingFactorY);
 	width = (int)(width * scalingFactorX);
 	height = (int)(height * scalingFactorY);
-	
-    std::cout << scalingFactorX << "[" << dpiX << "]" << temp2 << std::endl; // log
 
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
