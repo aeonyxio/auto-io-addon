@@ -98,14 +98,13 @@ file(GLOB_RECURSE SOURCE_FILES
 "src/window/window-api.cc"
 "src/window/window-api.h"
 
-"src/inline_keywords.h"
-"src/MMBitmap.h"
-"src/MMBitmap.c"
-"src/types.h"
 "src/screen-capture/screen-capture.c"
 "src/screen-capture/screen-capture.h"
 "src/screen-capture/screen-capture-api.cc"
 "src/screen-capture/screen-capture-api.h"
+
+"src/dpi-aware/dpi-aware-api.cc"
+"src/dpi-aware/dpi-aware-api.h"
 
 "src/auto_addon.cc"
 "src/auto_addon.h"

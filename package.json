@@ -10,7 +10,8 @@
     "prebuild": "prebuild --backend cmake-js --runtime napi --all --strip --verbose",
     "upload": "node scripts/upload.js",
     "build": "tsc && tsc -p scripts/tsconfig.json",
-    "test": "npm run rebuild && npm run build && node --napi-modules ./test/test_binding.js"
+    "test": "npm run rebuild && npm run build && node --napi-modules ./test/test_binding.js",
+    "next": "npm run build && npm run upload && npm publish"
   },
   "dependencies": {
     "cmake-js": "^6.3.0",
@@ -18,7 +19,7 @@
     "prebuild-install": "^7.0.1"
   },
   "name": "auto-io-addon",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "author": "",
   "license": "ISC",
   "description": "",

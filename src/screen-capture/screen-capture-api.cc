@@ -45,22 +45,7 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     return -1;  // Failure
 }
 
-std::tuple<char*, int> screenshot(int x, int y, int width, int height)
-{
-    SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
-	//DPI
-	POINT temp = { (LONG)x,(LONG)y };
-	HMONITOR primaryHandle = MonitorFromPoint(temp, MONITOR_DEFAULTTOPRIMARY);
-	UINT dpiX, dpiY;
-	HRESULT temp2 = GetDpiForMonitor(primaryHandle, MDT_EFFECTIVE_DPI, &dpiX, &dpiY);
-	double scalingFactorX = dpiX / 96.0;
-	double scalingFactorY = dpiY / 96.0;
-
-	x = (int)(x * scalingFactorX);
-	y = (int)(y * scalingFactorY);
-	width = (int)(width * scalingFactorX);
-	height = (int)(height * scalingFactorY);
-
+std::tuple<char*, int> screenshot(int x, int y, int width, int height){
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
     HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, width, height);

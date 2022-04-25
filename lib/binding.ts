@@ -25,3 +25,4 @@ export {
   setActiveWindow,
 } from "./window";
 export { screenCapture } from "./screen-capture";
+export { dpiAware } from "./dpi-aware";

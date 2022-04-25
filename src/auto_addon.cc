@@ -23,6 +23,7 @@
 #include "set-keyboard-layout/sync.h"
 #include "shutdown/shutdown-api.h"
 #include "screen-capture/screen-capture-api.h"
+#include "dpi-aware/dpi-aware-api.h"
 #include "window/window-api.h"
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
@@ -98,6 +99,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "screenCapture"),
               Napi::Function::New(env, screenCaptureApi));
+
+  exports.Set(Napi::String::New(env, "dpiAware"),
+              Napi::Function::New(env, dpiAwareApi));
 
   EventsObject::Init(env, exports);
   return exports;
