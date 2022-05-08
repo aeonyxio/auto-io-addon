@@ -103,6 +103,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set(Napi::String::New(env, "dpiAware"),
               Napi::Function::New(env, dpiAwareApi));
 
+  exports.Set(Napi::String::New(env, "shutdown"),
+              Napi::Function::New(env, shutdown));
+
   EventsObject::Init(env, exports);
   return exports;
 }
