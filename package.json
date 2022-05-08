@@ -19,7 +19,7 @@
     "prebuild-install": "^7.0.1"
   },
   "name": "auto-io-addon",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "author": "",
   "license": "ISC",
   "description": "",
