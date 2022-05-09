@@ -44,10 +44,6 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 }
 
 std::tuple<char*, int> screenshot(int x, int y, int width, int height){
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
     HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, width, height);
@@ -55,7 +51,6 @@ std::tuple<char*, int> screenshot(int x, int y, int width, int height){
     BitBlt(hDc, 0, 0, width, height, hScreen, x, y, SRCCOPY);
 
     Gdiplus::Bitmap bitmap(hBitmap, NULL);
-
 
 	//write to IStream
 	IStream* istream = nullptr;
@@ -84,8 +79,6 @@ std::tuple<char*, int> screenshot(int x, int y, int width, int height){
     DeleteDC(hDc);
     ReleaseDC(HWND_DESKTOP, hScreen);
     DeleteObject(hBitmap);
-
-    Gdiplus::GdiplusShutdown(gdiplusToken);
 
 	return { buffer, bufsize };
 }

@@ -1,6 +1,7 @@
 const { writeFileSync } = require("fs");
 const {
   screenCapture,
+  screenCaptureSync,
   getWindows,
   getWindowTitle,
   getWindowRect,
@@ -21,12 +22,13 @@ const test = async () => {
     );
   const rect = getRect();
   console.log(getRect());
-  const buffer = screenCapture(rect.x, rect.y, rect.width, rect.height);
-  console.log(buffer);
+  const buffer = await screenCapture(rect.x, rect.y, rect.width, rect.height);
+  console.log("buffer");
+  console.log("1", buffer);
   writeFileSync("test.png", buffer);
   await sleep(5000);
-  const buffer2 = screenCapture(rect.x, rect.y, rect.width, rect.height);
-  console.log(buffer2);
+  const buffer2 = screenCaptureSync(rect.x, rect.y, rect.width, rect.height);
+  console.log("2", buffer2);
   writeFileSync("test2.png", buffer2);
   console.log(getRect());
 };
