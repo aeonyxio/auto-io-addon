@@ -1,8 +1,18 @@
-#include <Windows.h>
-#include "gdiplus.h"
+#include <iostream>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <winsock2.h>
+#include <unknwn.h>
+#include <gdiplus.h>
+#include <tuple>
+#include <shellscalingapi.h>
 
 //Visual Studio shortcut for adding library:
 #pragma comment(lib, "Gdiplus.lib")
+#pragma comment(lib, "SHCore")
+#pragma comment(lib, "UXTheme")
+#pragma comment(lib, "shell32")
+#pragma comment(lib, "WINDOWSCODECS")
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
@@ -33,48 +43,49 @@ int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
     return -1;  // Failure
 }
 
-void screenshot(POINT a, POINT b)
-{
-    int w = b.x - a.x;
-    int h = b.y - a.y;
-
-    if(w <= 0) return;
-    if(h <= 0) return;
+std::tuple<char*, int> screenshot(int x, int y, int width, int height){
+    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+    ULONG_PTR gdiplusToken;
+    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
 
     HDC     hScreen = GetDC(HWND_DESKTOP);
     HDC     hDc = CreateCompatibleDC(hScreen);
-    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, w, h);
+    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, width, height);
     HGDIOBJ old_obj = SelectObject(hDc, hBitmap);
-    BitBlt(hDc, 0, 0, w, h, hScreen, a.x, a.y, SRCCOPY);
+    BitBlt(hDc, 0, 0, width, height, hScreen, x, y, SRCCOPY);
 
     Gdiplus::Bitmap bitmap(hBitmap, NULL);
-    CLSID clsid;
 
-    GetEncoderClsid(L"image/png", &clsid);
 
-    //GDI+ expects Unicode filenames
-    bitmap.Save(L"c:\\test\\test.png", &clsid);
+	//write to IStream
+	IStream* istream = nullptr;
+	HRESULT hr = CreateStreamOnHGlobal(NULL, TRUE, &istream);
+	CLSID clsid_png;
+	CLSIDFromString(L"{557cf406-1a04-11d3-9a73-0000f81ef32e}", &clsid_png);
+	bitmap.Save(istream, &clsid_png);
+
+	//get memory handle associated with istream
+	HGLOBAL hg = NULL;
+	GetHGlobalFromStream(istream, &hg);
+
+	//copy IStream to buffer
+	int bufsize = (int)GlobalSize(hg);
+	char *buffer = new char[bufsize];
+
+	//lock & unlock memory
+	LPVOID ptr = GlobalLock(hg);
+	memcpy(buffer, ptr, bufsize);
+	GlobalUnlock(hg);
+
+	//release will automatically free the memory allocated in CreateStreamOnHGlobal 
+	istream->Release();
 
     SelectObject(hDc, old_obj);
     DeleteDC(hDc);
     ReleaseDC(HWND_DESKTOP, hScreen);
     DeleteObject(hBitmap);
-}
-
-int getScreenshotPNG()
-{
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-    RECT      rc;
-    GetClientRect(GetDesktopWindow(), &rc);
-    POINT a{ 0, 0 };
-    POINT b{ 100, 100 };
-
-    screenshot(a, b);
 
     Gdiplus::GdiplusShutdown(gdiplusToken);
 
-    return 0;
+	return { buffer, bufsize };
 }

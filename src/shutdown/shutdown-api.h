@@ -1,3 +1,3 @@
 #include <napi.h>
 
-Napi::Value ShutdownAPI(const Napi::CallbackInfo& info);
+Napi::Value shutdownAPI(const Napi::CallbackInfo& info);

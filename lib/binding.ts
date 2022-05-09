@@ -24,6 +24,6 @@ export {
   getActiveWindow,
   setActiveWindow,
 } from "./window";
-export { screenCapture } from "./screen-capture";
+export { screenCapture, screenCaptureSync } from "./screen-capture";
 export { dpiAware } from "./dpi-aware";
 export { highlightRectangle, highlightRectangleSync } from "./highlight";

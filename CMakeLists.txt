@@ -98,7 +98,7 @@ file(GLOB_RECURSE SOURCE_FILES
 "src/window/window-api.cc"
 "src/window/window-api.h"
 
-"src/screen-capture/screen-capture.c"
+"src/screen-capture/screen-capture.cc"
 "src/screen-capture/screen-capture.h"
 "src/screen-capture/screen-capture-api.cc"
 "src/screen-capture/screen-capture-api.h"

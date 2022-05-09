@@ -1,111 +1,9 @@
 #include <napi.h>
-#include <iostream>
-// #include "screen-capture.h"
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <winsock2.h>
-#include <unknwn.h>
-#include <gdiplus.h>
-#include <shellscalingapi.h>
-#include <iostream>
+#include <tuple>
+#include "screen-capture.h"
+using namespace Napi;
 
-//Visual Studio shortcut for adding library:
-#pragma comment(lib, "Gdiplus.lib")
-#pragma comment(lib, "SHCore")
-#pragma comment(lib, "UXTheme")
-#pragma comment(lib, "shell32")
-#pragma comment(lib, "WINDOWSCODECS")
-
-int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
-{
-    UINT  num = 0;          // number of image encoders
-    UINT  size = 0;         // size of the image encoder array in bytes
-
-    Gdiplus::GetImageEncodersSize(&num, &size);
-    if(size == 0)
-        return -1;  // Failure
-
-    Gdiplus::ImageCodecInfo* pImageCodecInfo = (Gdiplus::ImageCodecInfo*)(malloc(size));
-    if(pImageCodecInfo == NULL)
-        return -1;  // Failure
-
-    GetImageEncoders(num, size, pImageCodecInfo);
-
-    for(UINT j = 0; j < num; ++j)
-    {
-        if(wcscmp(pImageCodecInfo[j].MimeType, format) == 0)
-        {
-            *pClsid = pImageCodecInfo[j].Clsid;
-            free(pImageCodecInfo);
-            return j;  // Success
-        }
-    }
-
-    free(pImageCodecInfo);
-    return -1;  // Failure
-}
-
-std::tuple<char*, int> screenshot(int x, int y, int width, int height){
-    HDC     hScreen = GetDC(HWND_DESKTOP);
-    HDC     hDc = CreateCompatibleDC(hScreen);
-    HBITMAP hBitmap = CreateCompatibleBitmap(hScreen, width, height);
-    HGDIOBJ old_obj = SelectObject(hDc, hBitmap);
-    BitBlt(hDc, 0, 0, width, height, hScreen, x, y, SRCCOPY);
-
-    Gdiplus::Bitmap bitmap(hBitmap, NULL);
-
-
-	//write to IStream
-	IStream* istream = nullptr;
-	HRESULT hr = CreateStreamOnHGlobal(NULL, TRUE, &istream);
-	CLSID clsid_png;
-	CLSIDFromString(L"{557cf406-1a04-11d3-9a73-0000f81ef32e}", &clsid_png);
-	bitmap.Save(istream, &clsid_png);
-
-	//get memory handle associated with istream
-	HGLOBAL hg = NULL;
-	GetHGlobalFromStream(istream, &hg);
-
-	//copy IStream to buffer
-	int bufsize = (int)GlobalSize(hg);
-	char *buffer = new char[bufsize];
-
-	//lock & unlock memory
-	LPVOID ptr = GlobalLock(hg);
-	memcpy(buffer, ptr, bufsize);
-	GlobalUnlock(hg);
-
-	//release will automatically free the memory allocated in CreateStreamOnHGlobal 
-	istream->Release();
-
-    SelectObject(hDc, old_obj);
-    DeleteDC(hDc);
-    ReleaseDC(HWND_DESKTOP, hScreen);
-    DeleteObject(hBitmap);
-
-	return { buffer, bufsize };
-}
-
-// std::tuple<char*, int> getScreenshot()
-// {
-//     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-//     ULONG_PTR gdiplusToken;
-//     Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-//     RECT      rc;
-//     GetClientRect(GetDesktopWindow(), &rc);
-//     POINT a{ 0, 0 };
-//     POINT b{ 100, 100 };
-
-//     auto [buffer, bufferSize] = screenshot(a, b);
-
-//     Gdiplus::GdiplusShutdown(gdiplusToken);
-
-//     return {buffer, bufferSize};
-// }
-
-
-Napi::Buffer<char> screenCaptureApi(const Napi::CallbackInfo &info)
+Napi::Buffer<char> screenCaptureSyncApi(const Napi::CallbackInfo &info)
 {
 	Napi::Env env = info.Env();
 
@@ -114,22 +12,56 @@ Napi::Buffer<char> screenCaptureApi(const Napi::CallbackInfo &info)
 	int64_t width = info[2].As<Napi::Number>().Int64Value();
 	int64_t height = info[3].As<Napi::Number>().Int64Value();
 
-
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
-
-    RECT      rc;
-    GetClientRect(GetDesktopWindow(), &rc);
-    POINT a{ 0, 0 };
-    POINT b{ 100, 100 };
-
     auto [buffer, bufferSize] = screenshot((int)x, (int)y, (int)width, (int)height);
-
-    Gdiplus::GdiplusShutdown(gdiplusToken);
 
 	Napi::Buffer<char> response = Napi::Buffer<char>::Copy(env, buffer, bufferSize);
 
 	// return buffer;
     return response;
+}
+
+class ScreenCaptureWorker : public Napi::AsyncWorker {
+ public:
+  ScreenCaptureWorker(Napi::Function& callback, int x, int y, int width, int height)
+      : Napi::AsyncWorker(callback), x(x), y(y), width(width), height(height) {}
+  ~ScreenCaptureWorker() {}
+
+  // Executed inside the worker-thread.
+  // It is not safe to access JS engine data structure
+  // here, so everything we need for input and output
+  // should go on `this`.
+  void Execute() { 
+    auto [bufferResponse, sizeResponse] = screenshot(x, y, width, height);
+    buffer = bufferResponse;
+    bufferSize = sizeResponse;
+  }
+
+  // Executed when the async work is complete
+  // this function will be run inside the main event loop
+  // so it is safe to use JS engine data again
+  void OnOK() {
+    HandleScope scope(Env());
+    Callback().Call({Napi::Buffer<char>::Copy(Env(), buffer, bufferSize)});
+  }
+
+ private:
+  int x;
+  int y;
+  int width;
+  int height;
+  char* buffer;
+  int bufferSize;
+};
+
+Napi::Value screenCaptureApi(const Napi::CallbackInfo& info) {
+	int64_t x = info[0].As<Napi::Number>().Int64Value();
+	int64_t y = info[1].As<Napi::Number>().Int64Value();
+	int64_t width = info[2].As<Napi::Number>().Int64Value();
+	int64_t height = info[3].As<Napi::Number>().Int64Value();
+    Napi::Function callback = info[4].As<Napi::Function>();
+
+  ScreenCaptureWorker* screenCaptureWorker = new ScreenCaptureWorker(callback, (int)x, (int)y, (int)width, (int)height);
+  screenCaptureWorker->Queue();
+
+  return info.Env().Undefined();
 }

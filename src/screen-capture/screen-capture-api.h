@@ -1,3 +1,4 @@
 #include <napi.h>
 
-Napi::Buffer<char> screenCaptureApi(const Napi::CallbackInfo &info);
+Napi::Value screenCaptureApi(const Napi::CallbackInfo& info);
+Napi::Buffer<char> screenCaptureSyncApi(const Napi::CallbackInfo &info);

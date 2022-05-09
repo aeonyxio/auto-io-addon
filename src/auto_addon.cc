@@ -99,12 +99,14 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   exports.Set(Napi::String::New(env, "screenCapture"),
               Napi::Function::New(env, screenCaptureApi));
+  exports.Set(Napi::String::New(env, "screenCaptureSync"),
+              Napi::Function::New(env, screenCaptureSyncApi));
 
   exports.Set(Napi::String::New(env, "dpiAware"),
               Napi::Function::New(env, dpiAwareApi));
 
   exports.Set(Napi::String::New(env, "shutdown"),
-              Napi::Function::New(env, shutdown));
+              Napi::Function::New(env, shutdownAPI));
 
   EventsObject::Init(env, exports);
   return exports;
